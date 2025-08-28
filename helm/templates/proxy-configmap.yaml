@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "quic-proxy-waf.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "quic-proxy-waf.proxy.labels" . | nindent 4 }}
+data:
+  # Backend configuration
+  BACKEND_HOST: {{ .Values.proxy.backend.host | quote }}
+  BACKEND_PORT: {{ .Values.proxy.backend.port | quote }}
+  
+  # Server ports
+  HTTP_PORT: {{ .Values.proxy.ports.http | quote }}
+  HTTPS_PORT: {{ .Values.proxy.ports.https | quote }}
+  
+  # WAF configuration
+  {{- if and .Values.waf.enabled .Values.proxy.waf.enabled }}
+  WAF_ENABLED: "true"
+  WAF_HOST: {{ printf "%s.%s.svc.cluster.local" (include "quic-proxy-waf.waf.serviceName" .) .Release.Namespace | quote }}
+  WAF_PORT: {{ .Values.waf.service.port | quote }}
+  WAF_TIMEOUT_MS: {{ .Values.proxy.waf.timeout | quote }}
+  {{- else }}
+  WAF_ENABLED: "false"
+  {{- end }}
+  
+  # TLS configuration
+  TLS_CERT_FILE: {{ .Values.proxy.tls.certFile | quote }}
+  TLS_KEY_FILE: {{ .Values.proxy.tls.keyFile | quote }}

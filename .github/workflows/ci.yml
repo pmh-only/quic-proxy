@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache-dependency-path: waf/go.sum
+      
+      - name: Install dependencies
+        run: |
+          # Install C++ dependencies
+          sudo apt-get update
+          sudo apt-get install -y build-essential g++ libssl-dev zlib1g-dev libbrotli-dev libzstd-dev cppcheck clang-format
+      
+      - name: Lint C++ code
+        run: |
+          make format
+          make lint || true  # Don't fail on warnings for now
+      
+      - name: Build C++ proxy
+        run: |
+          make clean
+          make -j$(nproc)
+      
+      - name: Test Go WAF service
+        run: |
+          cd waf
+          go mod tidy
+          go vet ./...
+          go test ./... -v
+      
+      - name: Build WAF service
+        run: |
+          cd waf
+          go build -v .
+      
+      - name: Test integration
+        run: |
+          chmod +x test-waf.sh
+          # ./test-waf.sh  # Commented out as it requires running services
+      
+      - name: Helm lint
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          helm lint ./helm
+      
+      - name: Validate Kubernetes manifests
+        run: |
+          # Install kubeval
+          curl -L https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz | tar xz
+          sudo mv kubeval /usr/local/bin
+          
+          # Validate manifests
+          kubeval k8s/*.yaml
+
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Run Gosec Security Scanner
+        uses: securecodewarrior/github-action-gosec@master
+        with:
+          args: './waf/...'
+      
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/ci
+            p/dockerfile

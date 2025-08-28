@@ -1,0 +1,70 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: quic-proxy-network-policy
+  namespace: quic-proxy
+  labels:
+    app.kubernetes.io/name: quic-proxy
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  ingress:
+  # Allow ingress to proxy from anywhere (internet traffic)
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: proxy
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+  
+  # Allow ingress to WAF only from proxy pods
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: waf
+    from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: proxy
+    ports:
+    - protocol: TCP
+      port: 9000
+  
+  egress:
+  # Allow proxy to communicate with WAF
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: proxy
+    to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: waf
+    ports:
+    - protocol: TCP
+      port: 9000
+  
+  # Allow proxy to communicate with backend services
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: proxy
+    to: []  # Allow to any namespace - adjust based on your backend location
+    ports:
+    - protocol: TCP
+      port: 8080
+  
+  # Allow DNS resolution
+  - from:
+    - podSelector: {}
+    to: []
+    ports:
+    - protocol: UDP
+      port: 53

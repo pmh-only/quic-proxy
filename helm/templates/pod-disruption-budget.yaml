@@ -1,0 +1,29 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "quic-proxy-waf.fullname" . }}-proxy-pdb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "quic-proxy-waf.proxy.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.proxy.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "quic-proxy-waf.proxy.selectorLabels" . | nindent 6 }}
+---
+{{- if .Values.waf.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "quic-proxy-waf.fullname" . }}-waf-pdb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "quic-proxy-waf.waf.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.waf.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "quic-proxy-waf.waf.selectorLabels" . | nindent 6 }}
+{{- end }}
+{{- end }}

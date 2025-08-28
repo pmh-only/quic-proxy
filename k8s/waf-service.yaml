@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: coraza-waf-service
+  namespace: quic-proxy
+  labels:
+    app.kubernetes.io/name: coraza-waf
+    app.kubernetes.io/component: waf
+    app.kubernetes.io/part-of: quic-proxy
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9000
+    targetPort: 9000
+    protocol: TCP
+    name: http
+  selector:
+    app.kubernetes.io/name: coraza-waf
+    app.kubernetes.io/component: waf

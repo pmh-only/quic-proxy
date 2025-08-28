@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: quic-proxy-waf
+
+resources:
+- namespace.yaml
+- waf-deployment.yaml
+- waf-service.yaml
+- proxy-configmap.yaml
+- proxy-deployment.yaml
+- proxy-service.yaml
+- network-policy.yaml
+- pod-disruption-budget.yaml
+
+# Common labels applied to all resources
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/version: latest
+
+# Image substitution - GitHub Container Registry
+images:
+- name: quic-proxy/coraza-waf
+  newName: ghcr.io/pmh-only/quic-proxy/coraza-waf
+  newTag: latest
+- name: quic-proxy/quic-proxy
+  newName: ghcr.io/pmh-only/quic-proxy/quic-proxy
+  newTag: latest
+
+# ConfigMap generator for additional config
+configMapGenerator:
+- name: quic-proxy-env
+  literals:
+  - GIN_MODE=release
+  - LOG_LEVEL=info

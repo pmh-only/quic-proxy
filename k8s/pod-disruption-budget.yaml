@@ -1,0 +1,29 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: quic-proxy-pdb
+  namespace: quic-proxy
+  labels:
+    app.kubernetes.io/name: quic-proxy
+    app.kubernetes.io/component: proxy
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: quic-proxy
+      app.kubernetes.io/component: proxy
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: coraza-waf-pdb
+  namespace: quic-proxy
+  labels:
+    app.kubernetes.io/name: coraza-waf
+    app.kubernetes.io/component: waf
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: coraza-waf
+      app.kubernetes.io/component: waf

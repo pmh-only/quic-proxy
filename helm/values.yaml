@@ -1,0 +1,96 @@
+# Default values for quic-proxy-waf
+# This is a YAML-formatted file.
+
+global:
+  registry: ghcr.io/pmh-only/quic-proxy
+  tag: latest
+  imagePullPolicy: IfNotPresent
+
+# WAF service configuration
+waf:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: coraza-waf
+    tag: ""
+  service:
+    port: 9000
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+  
+# Proxy service configuration
+proxy:
+  replicaCount: 3
+  image:
+    repository: quic-proxy
+    tag: ""
+  
+  # Backend configuration
+  backend:
+    host: "your-backend-service"
+    port: 8080
+  
+  # Server ports
+  ports:
+    http: 80
+    https: 443
+  
+  # WAF integration
+  waf:
+    enabled: true
+    timeout: 1000
+  
+  # TLS configuration
+  tls:
+    certFile: "/etc/ssl/certs/tls.crt"
+    keyFile: "/etc/ssl/private/tls.key"
+    secretName: "tls-certificate"
+  
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+
+# Service configuration
+service:
+  type: LoadBalancer
+  annotations: {}
+    # For AWS:
+    # service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    # service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+
+# Network policies
+networkPolicy:
+  enabled: true
+
+# Pod disruption budgets
+podDisruptionBudget:
+  enabled: true
+  proxy:
+    minAvailable: 2
+  waf:
+    minAvailable: 1
+
+# Security context
+securityContext:
+  runAsNonRoot: false  # Proxy needs root for port 80/443
+  runAsUser: 0
+
+# Node selector, tolerations and affinity
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Additional labels
+labels: {}
+
+# Additional annotations
+annotations: {}

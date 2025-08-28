@@ -1,0 +1,18 @@
+{{- if .Values.waf.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "quic-proxy-waf.waf.serviceName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "quic-proxy-waf.waf.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.waf.service.port }}
+    targetPort: {{ .Values.waf.service.port }}
+    protocol: TCP
+    name: http
+  selector:
+    {{- include "quic-proxy-waf.waf.selectorLabels" . | nindent 4 }}
+{{- end }}

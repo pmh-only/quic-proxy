@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coraza-waf
+  namespace: quic-proxy
+  labels:
+    app.kubernetes.io/name: coraza-waf
+    app.kubernetes.io/component: waf
+    app.kubernetes.io/part-of: quic-proxy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: coraza-waf
+      app.kubernetes.io/component: waf
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: coraza-waf
+        app.kubernetes.io/component: waf
+        app.kubernetes.io/part-of: quic-proxy
+    spec:
+      containers:
+      - name: waf
+        image: quic-proxy/coraza-waf:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9000
+          protocol: TCP
+          name: http
+        env:
+        - name: WAF_PORT
+          value: "9000"
+        - name: GIN_MODE
+          value: "release"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 9000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 9000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 1
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65534
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+      restartPolicy: Always

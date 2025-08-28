@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "quic-proxy-waf.fullname" . }}-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "quic-proxy-waf.proxy.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: {{ .Values.proxy.ports.http }}
+    targetPort: {{ .Values.proxy.ports.http }}
+    protocol: TCP
+    name: http
+  - port: {{ .Values.proxy.ports.https }}
+    targetPort: {{ .Values.proxy.ports.https }}
+    protocol: TCP
+    name: https
+  selector:
+    {{- include "quic-proxy-waf.proxy.selectorLabels" . | nindent 4 }}
