@@ -92,8 +92,8 @@ WAFResponse WAFClient::parse_json_response(const std::string& response) {
     // Simple JSON parsing - in production, use a proper JSON library like nlohmann/json
     std::regex allowed_regex(R"("allowed"\s*:\s*(true|false))");
     std::regex status_regex(R"("status_code"\s*:\s*(\d+))");
-    std::regex message_regex(R"("message"\s*:\s*"([^"]*)")");
-    std::regex rule_id_regex(R"("rule_id"\s*:\s*"([^"]*)")");
+    std::regex message_regex("\"message\"\\s*:\\s*\"([^\"]*)\"");
+    std::regex rule_id_regex("\"rule_id\"\\s*:\\s*\"([^\"]*)\"");
     
     std::smatch match;
     

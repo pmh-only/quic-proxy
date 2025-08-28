@@ -1,0 +1,82 @@
+# Build outputs
+*.o
+quic-proxy
+waf-service
+
+# Go build artifacts
+waf/waf-service
+go.work
+go.work.sum
+
+# Dependency files
+.depend
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Runtime directories
+tmp/
+temp/
+
+# Test artifacts
+coverage.out
+*.test
+test-results/
+
+# Docker build cache
+.dockerignore
+
+# TLS certificates (for local testing)
+*.pem
+*.crt
+*.key
+certs/
+private/
+
+# Configuration files with secrets
+.env
+.env.local
+.env.*.local
+config.local.*
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Compressed files
+*.tar.gz
+*.zip
+*.rar
+
+# Core dumps
+core.*
+
+# Profiling data
+*.prof
+*.pprof
+
+# Helm chart packages
+*.tgz
+charts/
+
+# Kubernetes secrets
+secrets.yaml
+secret-*.yaml

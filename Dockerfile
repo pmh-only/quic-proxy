@@ -32,11 +32,12 @@ RUN apt-get update && apt-get install -y \
     libbrotli1 \
     libzstd1 \
     ca-certificates \
+    curl \
     && rm -rf /var/lib/apt/lists/* \
     && update-ca-certificates
 
 # Create non-root user
-RUN groupadd -r proxy && useradd -r -g proxy -s /bin/false proxy
+RUN groupadd -r proxy && useradd -r -g proxy -s /usr/sbin/nologin proxy
 
 # Create necessary directories
 RUN mkdir -p /etc/ssl/certs /etc/ssl/private \

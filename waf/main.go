@@ -1,12 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/corazawaf/coraza/v3"
 	"github.com/gin-gonic/gin"
@@ -187,30 +185,14 @@ func evaluateRequest(c *gin.Context) {
 	}()
 
 	// Set connection information
-	tx.ProcessConnection(wafReq.RemoteAddr, wafReq.RemoteAddr, wafReq.ServerAddr, wafReq.ServerPort)
+	tx.ProcessConnection(wafReq.RemoteAddr, 0, wafReq.ServerAddr, wafReq.ServerPort)
 
 	// Process URI
-	if it := tx.ProcessURI(wafReq.URI, wafReq.Method, "HTTP/1.1"); it != nil {
-		c.JSON(http.StatusForbidden, WAFResponse{
-			Allowed:    false,
-			StatusCode: it.Status,
-			Message:    it.Data,
-			RuleID:     fmt.Sprintf("%d", it.RuleID),
-		})
-		return
-	}
+	tx.ProcessURI(wafReq.URI, wafReq.Method, "HTTP/1.1")
 
 	// Process headers
 	for name, value := range wafReq.Headers {
-		if it := tx.AddRequestHeader(name, value); it != nil {
-			c.JSON(http.StatusForbidden, WAFResponse{
-				Allowed:    false,
-				StatusCode: it.Status,
-				Message:    it.Data,
-				RuleID:     fmt.Sprintf("%d", it.RuleID),
-			})
-			return
-		}
+		tx.AddRequestHeader(name, value)
 	}
 
 	// Process request headers phase
@@ -243,7 +225,13 @@ func evaluateRequest(c *gin.Context) {
 		}
 
 		// Process request body phase
-		if it := tx.ProcessRequestBody(); it != nil {
+		if it, err := tx.ProcessRequestBody(); err != nil {
+			c.JSON(http.StatusInternalServerError, WAFResponse{
+				Allowed: false,
+				Message: "Error processing request body: " + err.Error(),
+			})
+			return
+		} else if it != nil {
 			c.JSON(http.StatusForbidden, WAFResponse{
 				Allowed:    false,
 				StatusCode: it.Status,

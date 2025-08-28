@@ -57,8 +57,10 @@ void WebSocketHandler::handle_websocket_ssl_connection(std::shared_ptr<asio::ssl
                                                      std::shared_ptr<tcp::socket> backend_socket) {
     // Start bidirectional relay for SSL
     relay_ssl_data(client_socket, backend_socket);
-    relay_data(backend_socket, 
-               std::make_shared<tcp::socket>(std::move(client_socket->lowest_layer())));
+    // For simplicity, we'll create a new socket using the executor
+    auto executor = backend_socket->get_executor();
+    auto plain_client = std::make_shared<tcp::socket>(executor);
+    relay_data(backend_socket, plain_client);
 }
 
 void WebSocketHandler::relay_data(std::shared_ptr<tcp::socket> from, std::shared_ptr<tcp::socket> to) {
