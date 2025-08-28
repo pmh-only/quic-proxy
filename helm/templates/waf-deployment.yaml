@@ -52,12 +52,14 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 65534
+          runAsGroup: 65534
           capabilities:
             drop:
             - ALL
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
+        runAsGroup: 65534
         fsGroup: 65534
       restartPolicy: Always
       {{- with .Values.nodeSelector }}

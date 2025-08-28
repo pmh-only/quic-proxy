@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     libbrotli-dev \
     libzstd-dev \
+    libasio-dev \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
@@ -36,12 +37,12 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && update-ca-certificates
 
-# Create non-root user
-RUN groupadd -r proxy && useradd -r -g proxy -s /usr/sbin/nologin proxy
+# Create necessary directories first
+RUN mkdir -p /etc/ssl/certs /etc/ssl/private
 
-# Create necessary directories
-RUN mkdir -p /etc/ssl/certs /etc/ssl/private \
-    && chown -R proxy:proxy /etc/ssl
+# Create non-root user (commented out as proxy needs root for ports 80/443)
+# RUN groupadd -r proxy && useradd -r -g proxy -s /bin/false proxy \
+#     && chown -R proxy:proxy /etc/ssl
 
 # Copy binary from builder stage
 COPY --from=builder /build/quic-proxy /usr/local/bin/quic-proxy
@@ -68,8 +69,7 @@ EXPOSE 80 443
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost/_gwhealthz || exit 1
 
-# Switch to non-root user (commented out as ports 80/443 require root)
-# USER proxy
+# Run as root (required for binding to ports 80/443)
 
 # Start the proxy
 CMD ["/usr/local/bin/quic-proxy"]

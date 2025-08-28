@@ -30,8 +30,8 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # Copy the binary
 COPY --from=builder /app/waf-service /waf-service
 
-# Create non-root user
-RUN addgroup -g 65534 -S waf && adduser -u 65534 -S -G waf -H waf
+# Use existing nobody user (more standard and avoids conflicts)
+# RUN addgroup -g 10001 -S waf && adduser -u 10001 -S -G waf -H waf
 
 # Expose the service port
 EXPOSE 9000
@@ -44,8 +44,8 @@ ENV GIN_MODE=release
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:9000/health || exit 1
 
-# Switch to non-root user
-USER waf
+# Switch to nobody user (UID 65534)
+USER nobody
 
 # Run the service
 CMD ["/waf-service"]
