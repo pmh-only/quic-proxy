@@ -1,12 +1,17 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: {{ if eq .Values.proxy.kind "daemonset" }}DaemonSet{{ else }}Deployment{{ end }}
 metadata:
   name: {{ include "quic-proxy-waf.fullname" . }}-proxy
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "quic-proxy-waf.proxy.labels" . | nindent 4 }}
 spec:
+{{- if eq .Values.proxy.kind "deployment" }}
   replicas: {{ .Values.proxy.replicaCount }}
+{{- else if eq .Values.proxy.kind "daemonset" }}
+  updateStrategy:
+    {{- toYaml .Values.daemonset.updateStrategy | nindent 4 }}
+{{- end }}
   selector:
     matchLabels:
       {{- include "quic-proxy-waf.proxy.selectorLabels" . | nindent 6 }}
@@ -15,17 +20,33 @@ spec:
       labels:
         {{- include "quic-proxy-waf.proxy.labels" . | nindent 8 }}
     spec:
+{{- if and (eq .Values.proxy.kind "daemonset") .Values.proxy.ports.useHostPorts }}
+      hostNetwork: {{ .Values.daemonset.hostNetwork }}
+      dnsPolicy: {{ .Values.daemonset.dnsPolicy }}
+{{- end }}
       containers:
       - name: proxy
         image: {{ include "quic-proxy-waf.proxy.image" . }}
         imagePullPolicy: {{ .Values.global.imagePullPolicy }}
         ports:
         - containerPort: {{ .Values.proxy.ports.http }}
+{{- if and (eq .Values.proxy.kind "daemonset") .Values.proxy.ports.useHostPorts }}
+          hostPort: {{ .Values.proxy.ports.http }}
+{{- end }}
           protocol: TCP
           name: http
         - containerPort: {{ .Values.proxy.ports.https }}
+{{- if and (eq .Values.proxy.kind "daemonset") .Values.proxy.ports.useHostPorts }}
+          hostPort: {{ .Values.proxy.ports.https }}
+{{- end }}
           protocol: TCP
           name: https
+{{- if and (eq .Values.proxy.kind "daemonset") .Values.proxy.ports.useHostPorts }}
+        - containerPort: {{ .Values.proxy.ports.https }}
+          hostPort: {{ .Values.proxy.ports.https }}
+          protocol: UDP
+          name: http3
+{{- end }}
         envFrom:
         - configMapRef:
             name: {{ include "quic-proxy-waf.fullname" . }}-config

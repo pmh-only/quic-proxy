@@ -1,12 +1,12 @@
-# Default values for quic-proxy-waf
-# This is a YAML-formatted file.
+# Example values for DaemonSet deployment with host ports
+# This configuration deploys the proxy as a DaemonSet with host network access
 
 global:
   registry: ghcr.io/pmh-only/quic-proxy
   tag: latest
   imagePullPolicy: IfNotPresent
 
-# WAF service configuration
+# WAF service configuration (unchanged)
 waf:
   enabled: true
   replicaCount: 2
@@ -22,11 +22,12 @@ waf:
     limits:
       memory: "256Mi"
       cpu: "500m"
-  
-# Proxy service configuration
+
+# Proxy service configuration for DaemonSet
 proxy:
-  # Deployment type: "deployment" or "daemonset"
-  kind: deployment
+  # Use DaemonSet instead of Deployment
+  kind: daemonset
+  # replicaCount is ignored for DaemonSets (runs on all nodes)
   replicaCount: 3
   image:
     repository: quic-proxy
@@ -37,12 +38,12 @@ proxy:
     host: "your-backend-service"
     port: 8080
   
-  # Server ports
+  # Server ports with host port binding
   ports:
     http: 80
     https: 443
-    # Enable host ports (only for DaemonSet)
-    useHostPorts: false
+    # Enable host ports for direct node access
+    useHostPorts: true
   
   # WAF integration
   waf:
@@ -63,21 +64,18 @@ proxy:
       memory: "512Mi"
       cpu: "1000m"
 
-# Service configuration
+# Service configuration (disabled when using host ports)
 service:
   type: LoadBalancer
   annotations: {}
-    # For AWS:
-    # service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-    # service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
 
 # Network policies
 networkPolicy:
   enabled: true
 
-# Pod disruption budgets
+# Pod disruption budgets (disabled for DaemonSets)
 podDisruptionBudget:
-  enabled: true
+  enabled: false
   proxy:
     minAvailable: 2
   waf:
@@ -90,7 +88,18 @@ securityContext:
 
 # Node selector, tolerations and affinity
 nodeSelector: {}
+# Example: Only run on edge nodes
+# nodeSelector:
+#   node-role.kubernetes.io/edge: "true"
+
 tolerations: []
+# Example: Tolerate edge node taints
+# tolerations:
+# - key: "edge"
+#   operator: "Equal"
+#   value: "true"
+#   effect: "NoSchedule"
+
 affinity: {}
 
 # DaemonSet specific settings
@@ -100,10 +109,10 @@ daemonset:
     type: RollingUpdate
     rollingUpdate:
       maxUnavailable: 1
-  # Host network access (when using host ports)
-  hostNetwork: false
-  # DNS policy when using host network
-  dnsPolicy: ClusterFirst
+  # Use host network for direct port access
+  hostNetwork: true
+  # Use host DNS when using host network
+  dnsPolicy: ClusterFirstWithHostNet
 
 # Additional labels
 labels: {}

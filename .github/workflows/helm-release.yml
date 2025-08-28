@@ -67,7 +67,7 @@ jobs:
               <style>
                   body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
                   h1 { color: #2563eb; }
-                  .code { background: #f3f4f6; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+                  .code { background: #f3f4f6; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; white-space: pre; }
                   .badges img { margin-right: 0.5rem; }
               </style>
           </head>
