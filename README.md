@@ -64,8 +64,8 @@ kubectl apply -f k8s/
 ./build-images.sh
 
 # Or pull from GitHub Container Registry
-docker pull ghcr.io/pmh-only/quic-proxy/quic-proxy:v1.2.2
-docker pull ghcr.io/pmh-only/quic-proxy/coraza-waf:v1.2.2
+docker pull ghcr.io/pmh-only/quic-proxy/quic-proxy:v1.2.3
+docker pull ghcr.io/pmh-only/quic-proxy/coraza-waf:v1.2.3
 ```
 
 ## 🔧 Configuration
@@ -137,8 +137,8 @@ service:
 
 Images are automatically built and published to GitHub Container Registry:
 
-- **Proxy**: `ghcr.io/pmh-only/quic-proxy/quic-proxy:v1.2.2`
-- **WAF**: `ghcr.io/pmh-only/quic-proxy/coraza-waf:v1.2.2`
+- **Proxy**: `ghcr.io/pmh-only/quic-proxy/quic-proxy:v1.2.3`
+- **WAF**: `ghcr.io/pmh-only/quic-proxy/coraza-waf:v1.2.3`
 
 Multi-architecture support: `linux/amd64`, `linux/arm64`
 
@@ -261,12 +261,12 @@ kubectl apply -k k8s/
 version: '3.8'
 services:
   waf:
-    image: ghcr.io/pmh-only/quic-proxy/coraza-waf:v1.2.2
+    image: ghcr.io/pmh-only/quic-proxy/coraza-waf:v1.2.3
     ports:
       - "9000:9000"
   
   proxy:
-    image: ghcr.io/pmh-only/quic-proxy/quic-proxy:v1.2.2
+    image: ghcr.io/pmh-only/quic-proxy/quic-proxy:v1.2.3
     ports:
       - "80:80"
       - "443:443"

@@ -13,6 +13,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: pmh-only/quic-proxy
+  BUILD_CACHE_KEY: v1.2.3
 
 jobs:
   build-proxy:
@@ -59,8 +60,15 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: |
+            type=gha
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/quic-proxy:buildcache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/quic-proxy:buildcache,mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+            CACHE_KEY=${{ env.BUILD_CACHE_KEY }}
 
   build-waf:
     name: Build WAF Image
@@ -106,8 +114,15 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: |
+            type=gha
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/coraza-waf:buildcache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/coraza-waf:buildcache,mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+            CACHE_KEY=${{ env.BUILD_CACHE_KEY }}
 
   security-scan:
     name: Security Scan

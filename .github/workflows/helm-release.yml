@@ -112,8 +112,8 @@ jobs:
               <h2>🐳 Container Images</h2>
               <p>Images are available on GitHub Container Registry:</p>
               <ul>
-                  <li><code>ghcr.io/pmh-only/quic-proxy/quic-proxy:v1.2.2</code></li>
-                  <li><code>ghcr.io/pmh-only/quic-proxy/coraza-waf:v1.2.2</code></li>
+                  <li><code>ghcr.io/pmh-only/quic-proxy/quic-proxy:v1.2.3</code></li>
+                  <li><code>ghcr.io/pmh-only/quic-proxy/coraza-waf:v1.2.3</code></li>
               </ul>
               
               <h2>📚 Documentation</h2>
