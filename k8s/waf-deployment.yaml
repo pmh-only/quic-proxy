@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: waf
-        image: quic-proxy/coraza-waf:latest
+        image: quic-proxy/coraza-waf:v1.2.2
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9000

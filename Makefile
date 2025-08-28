@@ -34,12 +34,12 @@ uninstall:
 	systemctl daemon-reload
 
 docker:
-	docker build -t $(TARGET):latest .
+	docker build -t $(TARGET):v1.2.2 .
 
 docker-http3:
-	echo "Building Docker image with HTTP/3 QUIC and ECH support..."
-	docker build -t $(TARGET):http3-latest .
-	echo "✅ Docker build with HTTP/3 QUIC and ECH completed"
+	echo "Building Docker image with HTTP/3 QUIC and advanced TLS support..."
+	docker build -t $(TARGET):v1.2.2-http3 .
+	echo "✅ Docker build with HTTP/3 and advanced TLS completed"
 
 docker-run:
 	docker run -d \
@@ -53,7 +53,7 @@ docker-run:
 		-e ADVANCED_TLS_ENABLED=true \
 		-e WAF_ENABLED=true \
 		-v /etc/ssl:/etc/ssl:ro \
-		$(TARGET):latest
+		$(TARGET):v1.2.2
 
 docker-run-http3:
 	docker run -d \
@@ -69,7 +69,7 @@ docker-run-http3:
 		-e TLS_EARLY_DATA_ENABLED=true \
 		-e WAF_ENABLED=true \
 		-v /etc/ssl:/etc/ssl:ro \
-		$(TARGET):http3-latest
+		$(TARGET):v1.2.2-http3
 
 # Development targets
 debug: CXXFLAGS += -g -DDEBUG
@@ -94,7 +94,7 @@ waf-service:
 	cd waf && go mod tidy && go build -o ../waf-service .
 
 waf-docker:
-	docker build -t coraza-waf:latest waf/
+	docker build -t coraza-waf:v1.2.2 waf/
 
 waf-clean:
 	rm -f waf-service

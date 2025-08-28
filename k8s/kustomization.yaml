@@ -17,16 +17,16 @@ resources:
 # Common labels applied to all resources
 commonLabels:
   app.kubernetes.io/managed-by: kustomize
-  app.kubernetes.io/version: latest
+  app.kubernetes.io/version: v1.2.2
 
 # Image substitution - GitHub Container Registry
 images:
 - name: quic-proxy/coraza-waf
   newName: ghcr.io/pmh-only/quic-proxy/coraza-waf
-  newTag: latest
+  newTag: v1.2.2
 - name: quic-proxy/quic-proxy
   newName: ghcr.io/pmh-only/quic-proxy/quic-proxy
-  newTag: latest
+  newTag: v1.2.2
 
 # ConfigMap generator for additional config
 configMapGenerator:

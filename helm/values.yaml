@@ -3,7 +3,7 @@
 
 global:
   registry: ghcr.io/pmh-only/quic-proxy
-  tag: latest
+  tag: "1.2.0"
   imagePullPolicy: IfNotPresent
 
 # WAF service configuration

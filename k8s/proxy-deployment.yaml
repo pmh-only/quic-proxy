@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: proxy
-        image: quic-proxy/quic-proxy:latest
+        image: quic-proxy/quic-proxy:v1.2.2
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
