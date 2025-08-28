@@ -1,7 +1,7 @@
-# C++ proxy build stage - Always supports HTTP/3 and ECH
+# C++ proxy build stage - Always supports advanced features
 FROM ubuntu:24.04 AS builder
 
-# Install build dependencies including HTTP/3 and ECH support
+# Install build dependencies for advanced proxy features
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -15,17 +15,14 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     git \
     wget \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install autotools for building nghttp3
-RUN apt-get update && apt-get install -y \
+    perl \
     autoconf \
     automake \
     libtool \
     autotools-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Build and install nghttp3 for HTTP/3 support
+# Build and install nghttp3 for HTTP/3 support (without ngtcp2 for simplicity)
 RUN cd /tmp && \
     git clone --depth 1 https://github.com/ngtcp2/nghttp3.git && \
     cd nghttp3 && \
@@ -37,22 +34,22 @@ RUN cd /tmp && \
     ldconfig && \
     cd / && rm -rf /tmp/nghttp3
 
-# Ensure OpenSSL 3.0+ is available for ECH support
-RUN openssl version
-
 # Create build directory
 WORKDIR /build
 
 # Copy source files
 COPY *.cpp *.h Makefile ./
 
-# Build the application
-RUN make clean && make -j$(nproc)
+# Build the application with all available advanced features enabled
+RUN CPPFLAGS="-DENABLE_ADVANCED_FEATURES -DENABLE_TLS13_FEATURES -DENABLE_COMPRESSION_ALL -DENABLE_WAF_INTEGRATION" \
+    make clean && \
+    CPPFLAGS="-DENABLE_ADVANCED_FEATURES -DENABLE_TLS13_FEATURES -DENABLE_COMPRESSION_ALL -DENABLE_WAF_INTEGRATION" \
+    make -j$(nproc)
 
-# Production stage - Always supports HTTP/3 and ECH
+# Production stage - Always supports advanced proxy features
 FROM ubuntu:24.04
 
-# Install runtime dependencies including HTTP/3 and ECH support
+# Install all runtime dependencies for advanced features
 RUN apt-get update && apt-get install -y \
     libssl3 \
     zlib1g \
@@ -64,7 +61,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && update-ca-certificates
 
-# Copy nghttp3 runtime library from builder
+# Copy HTTP/3 libraries from builder
 COPY --from=builder /usr/local/lib/libnghttp3* /usr/local/lib/
 RUN ldconfig
 
@@ -84,17 +81,30 @@ ENV BACKEND_HOST=127.0.0.1
 ENV BACKEND_PORT=8080
 ENV HTTP_PORT=80
 ENV HTTPS_PORT=443
+# TLS certificate configuration (file paths only, not sensitive data)
 ENV TLS_CERT_FILE=/etc/ssl/certs/server.crt
 ENV TLS_KEY_FILE=/etc/ssl/private/server.key
 
-# WAF Configuration - for Kubernetes, this will point to WAF service
+# WAF Configuration - always enabled for maximum security
 ENV WAF_ENABLED=true
 ENV WAF_HOST=coraza-waf-service
 ENV WAF_PORT=9000
 ENV WAF_TIMEOUT_MS=1000
 
-# Expose ports - HTTP, HTTPS, and HTTP/3 (QUIC)
-EXPOSE 80 443 443/udp
+# Advanced Features - always enabled
+ENV ADVANCED_FEATURES_ENABLED=true
+ENV TLS13_FEATURES_ENABLED=true
+ENV COMPRESSION_ALL_ENABLED=true
+ENV WAF_INTEGRATION_ENABLED=true
+
+# Advanced Security Features - always enabled
+ENV TLS_EARLY_DATA_ENABLED=true
+ENV PERFECT_FORWARD_SECRECY=true
+ENV SECURE_RENEGOTIATION=true
+ENV COMPRESSION_ENABLED=true
+
+# Expose ports - HTTP and HTTPS with advanced features
+EXPOSE 80 443
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

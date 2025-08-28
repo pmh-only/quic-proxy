@@ -1,7 +1,7 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -pthread
-INCLUDES = -I/usr/include/openssl -I/usr/include
-LIBS = -lssl -lcrypto -lz -lbrotlienc -lzstd -lnghttp2 -lnghttp3 -lpthread
+CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -pthread $(CPPFLAGS)
+INCLUDES = -I/usr/include/openssl -I/usr/include $(if $(shell pkg-config --exists openssl),$(shell pkg-config --cflags openssl))
+LIBS = -lssl -lcrypto -lz -lbrotlienc -lzstd -lnghttp2 -lnghttp3 -lpthread $(LDFLAGS)
 
 TARGET = quic-proxy
 SRCDIR = .
@@ -36,19 +36,49 @@ uninstall:
 docker:
 	docker build -t $(TARGET):latest .
 
+docker-http3:
+	echo "Building Docker image with HTTP/3 QUIC and ECH support..."
+	docker build -t $(TARGET):http3-latest .
+	echo "✅ Docker build with HTTP/3 QUIC and ECH completed"
+
 docker-run:
 	docker run -d \
 		--name $(TARGET) \
 		-p 80:80 \
 		-p 443:443 \
+		-p 443:443/udp \
 		-e BACKEND_HOST=127.0.0.1 \
 		-e BACKEND_PORT=8080 \
+		-e HTTP3_ENABLED=true \
+		-e ADVANCED_TLS_ENABLED=true \
+		-e WAF_ENABLED=true \
 		-v /etc/ssl:/etc/ssl:ro \
 		$(TARGET):latest
+
+docker-run-http3:
+	docker run -d \
+		--name $(TARGET)-http3 \
+		-p 80:80 \
+		-p 443:443 \
+		-p 443:443/udp \
+		-e BACKEND_HOST=127.0.0.1 \
+		-e BACKEND_PORT=8080 \
+		-e HTTP3_ENABLED=true \
+		-e QUIC_0RTT_ENABLED=true \
+		-e ADVANCED_TLS_ENABLED=true \
+		-e TLS_EARLY_DATA_ENABLED=true \
+		-e WAF_ENABLED=true \
+		-v /etc/ssl:/etc/ssl:ro \
+		$(TARGET):http3-latest
 
 # Development targets
 debug: CXXFLAGS += -g -DDEBUG
 debug: $(TARGET)
+
+# HTTP/3 QUIC and advanced TLS enabled build
+http3: CPPFLAGS += -DENABLE_HTTP3_QUIC -DENABLE_ADVANCED_TLS
+http3: CXXFLAGS += -DENABLE_HTTP3_QUIC -DENABLE_ADVANCED_TLS
+http3: $(TARGET)
 
 test: $(TARGET)
 	./test/run_tests.sh

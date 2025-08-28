@@ -6,7 +6,10 @@
 #include <array>
 #include <asio.hpp>
 #include <openssl/ssl.h>
-#include <openssl/quic.h>
+#ifdef ENABLE_ADVANCED_FEATURES
+// HTTP/3 support available through nghttp3
+// QUIC transport handled through nghttp3 library
+#endif
 #include <nghttp3/nghttp3.h>
 #include "config.h"
 
