@@ -21,11 +21,40 @@ jobs:
           go-version: '1.21'
           cache-dependency-path: waf/go.sum
       
-      - name: Install dependencies
+      - name: Install dependencies (with HTTP/3 and ECH support)
         run: |
-          # Install C++ dependencies
+          # Install C++ dependencies including HTTP/3 and ECH support
           sudo apt-get update
-          sudo apt-get install -y build-essential g++ libssl-dev zlib1g-dev libbrotli-dev libzstd-dev libasio-dev cppcheck clang-format pkg-config
+          sudo apt-get install -y \
+            build-essential \
+            g++ \
+            libssl-dev \
+            zlib1g-dev \
+            libbrotli-dev \
+            libzstd-dev \
+            libasio-dev \
+            libnghttp2-dev \
+            cppcheck \
+            clang-format \
+            pkg-config \
+            git \
+            autoconf \
+            automake \
+            libtool \
+            autotools-dev
+          
+          # Build and install nghttp3 for HTTP/3 support
+          cd /tmp
+          git clone --depth 1 https://github.com/ngtcp2/nghttp3.git
+          cd nghttp3
+          git submodule update --init
+          autoreconf -i
+          ./configure --enable-lib-only
+          make -j$(nproc)
+          sudo make install
+          sudo ldconfig
+          cd /
+          rm -rf /tmp/nghttp3
       
       - name: Lint C++ code
         run: |

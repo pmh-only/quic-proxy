@@ -1,7 +1,7 @@
-# C++ proxy build stage
-FROM ubuntu:22.04 AS builder
+# C++ proxy build stage - Always supports HTTP/3 and ECH
+FROM ubuntu:24.04 AS builder
 
-# Install build dependencies
+# Install build dependencies including HTTP/3 and ECH support
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -11,8 +11,34 @@ RUN apt-get update && apt-get install -y \
     libbrotli-dev \
     libzstd-dev \
     libasio-dev \
+    libnghttp2-dev \
     pkg-config \
+    git \
+    wget \
     && rm -rf /var/lib/apt/lists/*
+
+# Install autotools for building nghttp3
+RUN apt-get update && apt-get install -y \
+    autoconf \
+    automake \
+    libtool \
+    autotools-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Build and install nghttp3 for HTTP/3 support
+RUN cd /tmp && \
+    git clone --depth 1 https://github.com/ngtcp2/nghttp3.git && \
+    cd nghttp3 && \
+    git submodule update --init && \
+    autoreconf -i && \
+    ./configure --enable-lib-only && \
+    make -j$(nproc) && \
+    make install && \
+    ldconfig && \
+    cd / && rm -rf /tmp/nghttp3
+
+# Ensure OpenSSL 3.0+ is available for ECH support
+RUN openssl version
 
 # Create build directory
 WORKDIR /build
@@ -23,19 +49,24 @@ COPY *.cpp *.h Makefile ./
 # Build the application
 RUN make clean && make -j$(nproc)
 
-# Production stage
-FROM ubuntu:22.04
+# Production stage - Always supports HTTP/3 and ECH
+FROM ubuntu:24.04
 
-# Install runtime dependencies
+# Install runtime dependencies including HTTP/3 and ECH support
 RUN apt-get update && apt-get install -y \
     libssl3 \
     zlib1g \
     libbrotli1 \
     libzstd1 \
+    libnghttp2-14 \
     ca-certificates \
     curl \
     && rm -rf /var/lib/apt/lists/* \
     && update-ca-certificates
+
+# Copy nghttp3 runtime library from builder
+COPY --from=builder /usr/local/lib/libnghttp3* /usr/local/lib/
+RUN ldconfig
 
 # Create necessary directories first
 RUN mkdir -p /etc/ssl/certs /etc/ssl/private
@@ -62,8 +93,8 @@ ENV WAF_HOST=coraza-waf-service
 ENV WAF_PORT=9000
 ENV WAF_TIMEOUT_MS=1000
 
-# Expose ports
-EXPOSE 80 443
+# Expose ports - HTTP, HTTPS, and HTTP/3 (QUIC)
+EXPOSE 80 443 443/udp
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

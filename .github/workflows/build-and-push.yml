@@ -16,7 +16,7 @@ env:
 
 jobs:
   build-proxy:
-    name: Build Proxy Image
+    name: Build Proxy Image (with HTTP/3 and ECH)
     runs-on: ubuntu-latest
     permissions:
       contents: read

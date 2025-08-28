@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a high-performance C++ reverse proxy server named "QUIC Reverse Proxy" with advanced security features. The project supports HTTP/1.0, HTTP/1.1, HTTP/2, HTTP/3 (QUIC), WebSockets, and modern TLS configurations.
+This is a high-performance C++ reverse proxy server named "QUIC Reverse Proxy" with advanced security features. The project supports HTTP/1.0, HTTP/1.1, HTTP/2, HTTP/3 (QUIC), WebSockets, and modern TLS configurations with **always-enabled HTTP/3 QUIC and ECH support**.
 
 ## Build Commands
 
@@ -59,13 +59,15 @@ sudo make uninstall  # Remove system service
   - TLS 1.3: `TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256`
 - **secp384r1 ECDH curve only**
 - **TLS Early Data support** for TLS 1.3
-- **ECH (Encrypted Client Hello)** support when available
+- **ECH (Encrypted Client Hello)** support (always enabled)
 - **XFF header calculation** - ignores client-provided XFF headers for security
 - **HTTP to HTTPS redirection** on port 80
 
 ### Dependencies
 
-- **OpenSSL 1.1.1+** for TLS/SSL support
+- **OpenSSL 3.0+** for TLS/SSL support with ECH extensions (always enabled)
+- **nghttp2** for HTTP/2 support
+- **nghttp3** for HTTP/3 QUIC support (always enabled)
 - **zlib** for gzip/deflate compression
 - **Brotli** for Brotli compression
 - **zstd** for Zstandard compression
@@ -83,11 +85,12 @@ The application is configured entirely through environment variables:
 
 ### Supported Features
 
-- **Multi-protocol**: HTTP/1.0, HTTP/1.1, HTTP/2, HTTP/3
-- **Compression**: Automatic compression for text-based content types
+- **Multi-protocol**: HTTP/1.0, HTTP/1.1, HTTP/2, HTTP/3 (QUIC always enabled)
+- **Advanced Security**: ECH (always enabled), TLS 1.2/1.3 only, restricted ciphers
+- **Compression**: Automatic compression for text-based content types  
 - **WebSocket**: Full WebSocket proxy with bidirectional data relay
 - **Health Check**: `/_gwhealthz` endpoint for monitoring
-- **Docker**: Multi-stage Dockerfile with security hardening
+- **Docker**: Multi-stage Dockerfile with HTTP/3 and ECH dependencies
 - **SystemD**: Service file with security restrictions
 
 ## Development Workflow

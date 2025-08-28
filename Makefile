@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -pthread
 INCLUDES = -I/usr/include/openssl -I/usr/include
-LIBS = -lssl -lcrypto -lz -lbrotlienc -lzstd -lpthread
+LIBS = -lssl -lcrypto -lz -lbrotlienc -lzstd -lnghttp2 -lnghttp3 -lpthread
 
 TARGET = quic-proxy
 SRCDIR = .

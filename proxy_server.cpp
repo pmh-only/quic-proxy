@@ -9,6 +9,18 @@ ProxyServer::ProxyServer(const Config& config)
     tls_handler_ = std::make_unique<TLSHandler>(*ssl_context_, config_);
     http_handler_ = std::make_unique<HTTPHandler>(config_);
     
+    // Initialize HTTP/3 handler if supported
+    try {
+        http3_handler_ = std::make_unique<HTTP3Handler>(config_, io_context_);
+        if (!http3_handler_->is_http3_supported()) {
+            std::cout << "HTTP/3 not supported, will use HTTP/2 only" << std::endl;
+            http3_handler_.reset();
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "HTTP/3 initialization failed: " << e.what() << std::endl;
+        http3_handler_.reset();
+    }
+    
     tls_handler_->configure_ssl_context();
 }
 
@@ -17,6 +29,11 @@ void ProxyServer::start() {
     
     start_http_server();
     start_https_server();
+    
+    // Start HTTP/3 server if available
+    if (http3_handler_) {
+        start_http3_server();
+    }
     
     // Create worker threads
     const size_t num_threads = std::thread::hardware_concurrency();
@@ -36,6 +53,12 @@ void ProxyServer::start() {
 
 void ProxyServer::stop() {
     running_ = false;
+    
+    // Stop HTTP/3 handler if running
+    if (http3_handler_) {
+        http3_handler_->stop();
+    }
+    
     io_context_.stop();
 }
 
@@ -87,4 +110,14 @@ void ProxyServer::accept_https_connections() {
                 accept_https_connections();
             }
         });
+}
+
+void ProxyServer::start_http3_server() {
+    try {
+        http3_handler_->start_quic_server();
+        std::cout << "HTTP/3 QUIC server started successfully" << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to start HTTP/3 server: " << e.what() << std::endl;
+        http3_handler_.reset();
+    }
 }

@@ -8,12 +8,14 @@
 #include "config.h"
 #include "compression.h"
 #include "waf_client.h"
+#include "websocket_handler.h"
 
 using asio::ip::tcp;
 
 class HTTPHandler {
 public:
     explicit HTTPHandler(const Config& config);
+    ~HTTPHandler();
     
     void handle_http_connection(std::shared_ptr<tcp::socket> socket);
     void handle_https_connection(std::shared_ptr<asio::ssl::stream<tcp::socket>> ssl_socket);
@@ -47,14 +49,18 @@ private:
     std::string get_supported_encoding(const std::string& accept_encoding);
     
     void forward_to_backend(const HTTPRequest& request, HTTPResponse& response, const std::string& xff_headers);
-    void handle_websocket_upgrade(std::shared_ptr<tcp::socket> client_socket, const HTTPRequest& request, const std::string& xff_headers);
+    void handle_websocket_upgrade(std::shared_ptr<asio::ssl::stream<tcp::socket>> ssl_socket, const HTTPRequest& request, const std::string& xff_headers);
     
     bool evaluate_waf_request(const HTTPRequest& request, const std::string& client_ip, HTTPResponse& waf_rejection_response);
     std::string serialize_response(const HTTPResponse& response);
+    HTTPResponse parse_backend_response(const std::string& raw_response);
+    std::string read_full_backend_response(tcp::socket& backend_socket);
     
     const Config& config_;
     std::unique_ptr<CompressionHandler> compression_handler_;
     std::unique_ptr<WAFClient> waf_client_;
+    std::unique_ptr<class HTTP2Handler> http2_handler_;
+    std::unique_ptr<WebSocketHandler> websocket_handler_;
     asio::io_context backend_io_context_;
     
     // Supported content types for compression

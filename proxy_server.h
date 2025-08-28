@@ -7,6 +7,7 @@
 #include "config.h"
 #include "tls_handler.h"
 #include "http_handler.h"
+#include "http3_handler.h"
 
 using asio::ip::tcp;
 
@@ -19,6 +20,7 @@ public:
 private:
     void start_http_server();
     void start_https_server();
+    void start_http3_server();
     void accept_http_connections();
     void accept_https_connections();
     
@@ -29,6 +31,7 @@ private:
     std::unique_ptr<asio::ssl::context> ssl_context_;
     std::unique_ptr<TLSHandler> tls_handler_;
     std::unique_ptr<HTTPHandler> http_handler_;
+    std::unique_ptr<HTTP3Handler> http3_handler_;
     std::vector<std::thread> worker_threads_;
     bool running_;
 };
