@@ -129,7 +129,7 @@ The application is configured entirely through environment variables:
 docker run -d --name quic-proxy -p 80:80 -p 443:443 \
   -e BACKEND_HOST=backend.internal \
   -v /path/to/certs:/etc/ssl/certs:ro \
-  quic-proxy:v1.2.3
+  quic-proxy:v1.2.4
 ```
 
 ### System Service

@@ -1,8 +1,8 @@
 apiVersion: v2
 name: quic-proxy-waf
 description: A high-performance reverse proxy with integrated Coraza WAF and OWASP Core Rule Set
-version: 1.2.3
-appVersion: "1.2.3"
+version: 1.2.4
+appVersion: "1.2.4"
 type: application
 keywords:
   - proxy

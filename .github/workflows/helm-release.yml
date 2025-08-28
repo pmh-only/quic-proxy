@@ -1,12 +1,10 @@
 name: Release Helm Chart
 
 on:
-  push:
-    tags:
-      - 'v*'
-    paths:
-      - 'helm/**'
-      - '.github/workflows/helm-release.yml'
+  workflow_run:
+    workflows: ["Build and Push Container Images"]
+    types:
+      - completed
 
 env:
   HELM_VERSION: v3.13.0
@@ -15,6 +13,9 @@ jobs:
   release:
     name: Release Helm Chart
     runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
     permissions:
       contents: write
       pages: write
@@ -24,6 +25,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.workflow_run.head_branch }}
           fetch-depth: 0
       
       - name: Configure Git
@@ -112,8 +114,8 @@ jobs:
               <h2>🐳 Container Images</h2>
               <p>Images are available on GitHub Container Registry:</p>
               <ul>
-                  <li><code>ghcr.io/pmh-only/quic-proxy/quic-proxy:v1.2.3</code></li>
-                  <li><code>ghcr.io/pmh-only/quic-proxy/coraza-waf:v1.2.3</code></li>
+                  <li><code>ghcr.io/pmh-only/quic-proxy/quic-proxy:v1.2.4</code></li>
+                  <li><code>ghcr.io/pmh-only/quic-proxy/coraza-waf:v1.2.4</code></li>
               </ul>
               
               <h2>📚 Documentation</h2>

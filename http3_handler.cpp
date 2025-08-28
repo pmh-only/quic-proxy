@@ -367,8 +367,20 @@ void HTTP3Handler::send_http3_response(std::shared_ptr<QuicConnection> conn, int
     };
     headers.push_back(status_header);
     
-    // Add response headers
+    // Add response headers (filter out HTTP/3 forbidden headers)
     for (const auto& header : response.headers) {
+        std::string header_name_lower = header.first;
+        std::transform(header_name_lower.begin(), header_name_lower.end(), header_name_lower.begin(), ::tolower);
+        
+        // Skip connection-specific headers forbidden in HTTP/3
+        if (header_name_lower == "connection" || 
+            header_name_lower == "keep-alive" ||
+            header_name_lower == "proxy-connection" ||
+            header_name_lower == "transfer-encoding" ||
+            header_name_lower == "upgrade") {
+            continue;
+        }
+        
         nghttp3_nv nv = {
             reinterpret_cast<const uint8_t*>(header.first.c_str()),
             reinterpret_cast<const uint8_t*>(header.second.c_str()),

@@ -13,7 +13,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: pmh-only/quic-proxy
-  BUILD_CACHE_KEY: v1.2.3
+  BUILD_CACHE_KEY: v1.2.4
 
 jobs:
   build-proxy:

@@ -331,8 +331,20 @@ void HTTP2Handler::send_response(std::shared_ptr<HTTP2Session> session, int32_t 
     };
     headers.push_back(status_header);
     
-    // Add response headers
+    // Add response headers (filter out HTTP/2 forbidden headers)
     for (const auto& header : response.headers) {
+        std::string header_name_lower = header.first;
+        std::transform(header_name_lower.begin(), header_name_lower.end(), header_name_lower.begin(), ::tolower);
+        
+        // Skip connection-specific headers forbidden in HTTP/2
+        if (header_name_lower == "connection" || 
+            header_name_lower == "keep-alive" ||
+            header_name_lower == "proxy-connection" ||
+            header_name_lower == "transfer-encoding" ||
+            header_name_lower == "upgrade") {
+            continue;
+        }
+        
         nghttp2_nv nv = {
             const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(header.first.c_str())),
             const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(header.second.c_str())),

@@ -8,7 +8,7 @@ on:
 
 env:
   GO_VERSION: '1.21'
-  BUILD_CACHE_KEY: v1.2.3
+  BUILD_CACHE_KEY: v1.2.4
 
 jobs:
   # Fast parallel jobs that don't require heavy dependencies
@@ -123,11 +123,30 @@ jobs:
             zlib1g-dev \
             libbrotli-dev \
             libzstd-dev \
+            libasio-dev \
             libnghttp2-dev \
-            libnghttp3-dev \
             pkg-config \
             clang-format \
-            cppcheck
+            cppcheck \
+            git \
+            autoconf \
+            automake \
+            libtool \
+            autotools-dev
+      
+      - name: Build nghttp3 from source
+        run: |
+          cd /tmp
+          git clone --depth 1 https://github.com/ngtcp2/nghttp3.git
+          cd nghttp3
+          git submodule update --init
+          autoreconf -i
+          ./configure --enable-lib-only
+          make -j$(nproc)
+          sudo make install
+          sudo ldconfig
+          cd /
+          rm -rf /tmp/nghttp3
       
       - name: Build C++ proxy (with advanced features)
         run: |

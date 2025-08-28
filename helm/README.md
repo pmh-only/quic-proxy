@@ -106,7 +106,7 @@ affinity:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `global.registry` | string | `"quic-proxy"` | Container registry |
-| `global.tag` | string | `"1.2.3"` | Image tag |
+| `global.tag` | string | `"1.2.4"` | Image tag |
 | `global.imagePullPolicy` | string | `"IfNotPresent"` | Image pull policy |
 | `waf.enabled` | bool | `true` | Enable WAF service |
 | `waf.replicaCount` | int | `2` | Number of WAF replicas |
